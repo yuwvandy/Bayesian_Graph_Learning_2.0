@@ -6,22 +6,22 @@ class shelbycounty(object):
         """
         import numpy as np
         
-        self.name = sc_network_data["name"]
-        self.nodenum = sc_network_data["nodenum"]
-        self.color = sc_network_data["color"]
-        self.fail_prop = sc_network_data["fail_prop_matrix"]
+        self.name = network_data["name"]
+        self.nodenum = network_data["nodenum"]
+        self.color = network_data["color"]
+        self.fail_prop = network_data["fail_prop_matrix"]
         
-        self.supplynum, self.trannum, self.demandnum = sc_network_data["supplynum"], sc_network_data["trannum"], sc_network_data["demandnum"]
-        self.supplyname, self.tranname, self.demandname = sc_network_data["supplyname"], sc_network_data["tranname"], sc_network_data["demandname"]
+        self.supplynum, self.trannum, self.demandnum = network_data["supplynum"], network_data["trannum"], network_data["demandnum"]
+        self.supplyname, self.tranname, self.demandname = network_data["supplyname"], network_data["tranname"], network_data["demandname"]
 
         self.supplyseries = np.arange(0, self.supplynum, 1)
         self.transeries = np.arange(self.supplynum, self.supplynum + self.trannum, 1)
         self.demandseries = np.arange(self.supplynum + self.trannum, self.nodenum, 1)
         self.nodeseries = np.arange(0, self.nodenum, 1)
         
-        self.type = [self.supply_series, self.tran_series, self.demand_series]
+        self.type = [self.supplyseries, self.transeries, self.demandseries]
 
-    def adjmatrix(self, edgepath):
+    def adj_matrix(self, edgepath):
         """Set up the adjacent matrix of the network
         Input:
             edgepath - the path of the edge list used to load the data

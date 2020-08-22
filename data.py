@@ -56,8 +56,8 @@ inter_wd2ps = {"name": "wdemand2psupply",
                "network1": 0, #which network in networks object list, starting from 0
                "network2": 1,
                "from": [2], #which type of nodes in network1 that nodes in network2 depend on
-               "to": [1],
-               "edge_prob": 0.5
+               "to": [0],
+               "edge_prob": 0.1
                }
 
 ##Gas demand -> power supply
@@ -65,8 +65,8 @@ inter_gd2ps = {"name": "gdemand2psupply",
                "network1": 2,
                "network2": 1,
                "from": [2],
-               "to": [0, 1, 2],
-               "edge_prob": 0.5
+               "to": [0],
+               "edge_prob": 0.1
                }
 
 ##Power demand -> all water nodes
@@ -75,16 +75,16 @@ inter_pd2w = {"name": "pdemand2water",
                "network2": 0,
                "from": [2],
                "to": [0, 1, 2],
-               "edge_prob": 0.5
+               "edge_prob": 0.1
                }
 
 ##Power demand -> all gas nodes
-inter_pd2w = {"name": "pdemand2gas",
+inter_pd2g = {"name": "pdemand2gas",
                "network1": 1,
                "network2": 2,
                "from": [2],
                "to": [0, 1, 2],
-               "edge_prob": 0.5
+               "edge_prob": 0.1
                }
 
 sc_inter_data = [inter_wd2ps, inter_gd2ps, inter_pd2w, inter_pd2w]

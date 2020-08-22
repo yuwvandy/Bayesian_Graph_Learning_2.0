@@ -6,11 +6,12 @@ Created on Fri Aug 21 08:37:40 2020
 """
 
 class internetwork(object):
-    def __init__(self, inter_data, sc_networks, start_number):
+    def __init__(self, inter_data, sc_networks, supply_start_num, demand_start_num):
         """ Set up the class of 2-partite interdependent networks: demand -> ...
         Input:
             inter_data: the data of interdependent networks
         """
+        import numpy as np
         
         self.name = inter_data["name"]
         
@@ -28,11 +29,13 @@ class internetwork(object):
         self.supplyseries = self.network1.type[self.node1_num[0]]
         self.demandseries = []
         for i in range(len(self.node2_num)):
-            self.demandseries = np.concatenate((self.demandseries, self.network2.type[self.node2_num[i]]))
-            
-        self.start_number
+            self.demandseries = self.demandseries + list(self.network2.type[self.node2_num[i]])
+        self.demandseries = np.array(self.demandseries, dtype = int)
+        
+        self.supply_start_num = supply_start_num
+        self.demand_start_num = demand_start_num
     
-    def adjmatrix(self):
+    def adj_matrix(self):
         """ Create the adjacent matrix of the internetworks
         Two properties:
             1. All supply nodes have at least one demand nodes for resources to go to
