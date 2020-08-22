@@ -22,6 +22,7 @@ for i in range(len(sc_networks)):
     sc_networks[i].adj_matrix(dt.sc_data[i]["edge_path"])
     sc_networks[i].edgeprob()
     dt.sc_data[i]["edgeprob"] = sc_networks[i].edge_prob
+    sc_networks[i].edge_failure_matrix()
     
     ##If we want to simulate the failure scenario in each individual network
     # #simulate the failure evoluation
@@ -32,20 +33,27 @@ for i in range(len(sc_networks)):
     # sc_networks[i].failure_simulation()
 
 #Initialize the four interdependent networks
-sc_inter_wd2ps = internetwork(dt.inter_wd2ps, sc_networks, 0, sc_water.nodenum)
-sc_inter_gd2ps = internetwork(dt.inter_gd2ps, sc_networks, sc_water.nodenum + sc_gas.nodenum, sc_water.nodenum)
-sc_inter_pd2w = internetwork(dt.inter_pd2w, sc_networks, sc_water.nodenum, 0)
-sc_inter_pd2g = internetwork(dt.inter_pd2g, sc_networks, sc_water.nodenum, sc_water.nodenum + sc_power.nodenum)
+sc_inter_wd2ps = internetwork(dt.inter_wd2ps, sc_networks)
+sc_inter_gd2ps = internetwork(dt.inter_gd2ps, sc_networks)
+sc_inter_pd2w = internetwork(dt.inter_pd2w, sc_networks)
+sc_inter_pd2g = internetwork(dt.inter_pd2g, sc_networks)
 
 sc_internetworks = [sc_inter_wd2ps, sc_inter_gd2ps, sc_inter_pd2w, sc_inter_pd2g]
 for i in range(len(sc_internetworks)):
     sc_internetworks[i].adj_matrix()
+    sc_internetworks[i].failpropmatrix()
 
 #Initialize the system
 sc_system = sbm(sc_networks, sc_internetworks)
 sc_system.adj_matrix()
+sc_system.edge_failure_matrix()
 
-
+#Simulate the failure of the whole system
+sc_system.failinitialize()
+initial_fail_num = np.random.randint(sc_system.nodenum)
+# initial_fail_num = 8
+sc_system.generate_initial_failure(initial_fail_num, dt.seed)
+sc_system.failure_simulation()
 
 
 ####----------------------------------------Bayesian inference for sampling prior graph

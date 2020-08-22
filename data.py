@@ -57,7 +57,10 @@ inter_wd2ps = {"name": "wdemand2psupply",
                "network2": 1,
                "from": [2], #which type of nodes in network1 that nodes in network2 depend on
                "to": [0],
-               "edge_prob": 0.1
+               "supply_start_num": 0,
+               "demand_start_num": sc_water_data["nodenum"],
+               "edge_prob": 0.1,
+               "fail_prop": 0.08
                }
 
 ##Gas demand -> power supply
@@ -66,7 +69,10 @@ inter_gd2ps = {"name": "gdemand2psupply",
                "network2": 1,
                "from": [2],
                "to": [0],
-               "edge_prob": 0.1
+               "supply_start_num": sc_water_data["nodenum"] + sc_power_data["nodenum"],
+               "demand_start_num": sc_water_data["nodenum"],
+               "edge_prob": 0.1,
+               "fail_prop": 0.08
                }
 
 ##Power demand -> all water nodes
@@ -75,7 +81,10 @@ inter_pd2w = {"name": "pdemand2water",
                "network2": 0,
                "from": [2],
                "to": [0, 1, 2],
-               "edge_prob": 0.1
+               "supply_start_num": sc_water_data["nodenum"],
+               "demand_start_num": 0,
+               "edge_prob": 0.1,
+               "fail_prop": 0.08
                }
 
 ##Power demand -> all gas nodes
@@ -84,7 +93,10 @@ inter_pd2g = {"name": "pdemand2gas",
                "network2": 2,
                "from": [2],
                "to": [0, 1, 2],
-               "edge_prob": 0.1
+               "supply_start_num": sc_water_data["nodenum"],
+               "demand_start_num": sc_water_data["nodenum"] + sc_power_data["nodenum"],
+               "edge_prob": 0.1,
+               "fail_prop": 0.08
                }
 
 sc_inter_data = [inter_wd2ps, inter_gd2ps, inter_pd2w, inter_pd2w]

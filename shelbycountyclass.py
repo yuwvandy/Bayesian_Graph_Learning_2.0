@@ -56,6 +56,7 @@ class shelbycounty(object):
                 if(i == j):
                     self.edge_prob[i, j] = 2*temp/(len(self.type[i])*(len(self.type[j]) - 1))
     
+    
     def failinitialize(self):
         """Initialize the failure scenario, specifically prepare all array for saving failure data
         """

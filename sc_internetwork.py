@@ -6,7 +6,7 @@ Created on Fri Aug 21 08:37:40 2020
 """
 
 class internetwork(object):
-    def __init__(self, inter_data, sc_networks, supply_start_num, demand_start_num):
+    def __init__(self, inter_data, sc_networks):
         """ Set up the class of 2-partite interdependent networks: demand -> ...
         Input:
             inter_data: the data of interdependent networks
@@ -32,8 +32,13 @@ class internetwork(object):
             self.demandseries = self.demandseries + list(self.network2.type[self.node2_num[i]])
         self.demandseries = np.array(self.demandseries, dtype = int)
         
-        self.supply_start_num = supply_start_num
-        self.demand_start_num = demand_start_num
+        self.supplynum = len(self.supplyseries)
+        self.demandnum = len(self.demandseries)
+        
+        self.supply_start_num = inter_data["supply_start_num"]
+        self.demand_start_num = inter_data["demand_start_num"]
+        
+        self.fail_prop = inter_data["fail_prop"]
     
     def adj_matrix(self):
         """ Create the adjacent matrix of the internetworks
@@ -65,5 +70,17 @@ class internetwork(object):
                     if(np.random.rand() <= self.edge_prob):
                         self.adjmatrix[j, i] = 1
                         break
-                
+    
+    def failpropmatrix(self):
+        """ Create the failure propagation matrix
+        Output:
+            self.fail_prop_matrix of N*N: fail_prop_matrix[i, j]: the failure propagation from i to j
+        """
+        import numpy as np
+        
+        self.fail_prop_matrix = np.zeros((self.supplynum, self.demandnum), dtype = float)
+        
+        for i in range(self.supplynum):
+            for j in range(self.demandnum):
+                self.fail_prop_matrix[i, j] = self.fail_prop
                 
