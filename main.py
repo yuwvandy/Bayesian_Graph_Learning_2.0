@@ -58,10 +58,11 @@ sc_system.failure_simulation()
 
 ####----------------------------------------Bayesian inference for sampling prior graph
 #Initialize the three self-defined networks
-block_water = block(dt.water_data["name"], dt.water_data["supplynum"], dt.water_data["trannum"], dt.water_data["demandnum"], sc_water.edge_prob)
-block_power = block(dt.power_data["name"], dt.power_data["supplynum"], dt.power_data["trannum"], dt.power_data["demandnum"], sc_power.edge_prob)
-block_gas = block(dt.gas_data["name"], dt.gas_data["supplynum"], dt.gas_data["trannum"], dt.gas_data["demandnum"], sc_gas.edge_prob)
-
-networks = [block_water, block_power, block_gas]
-for i in range(len(networks)):
-    networks[i].adj_matrix()
+while(1):
+    block_water = block(dt.water_data)
+    block_power = block(dt.power_data)
+    block_gas = block(dt.gas_data)
+    
+    networks = [block_water, block_power, block_gas]
+    for i in range(len(networks)):
+        networks[i].adj_matrix()

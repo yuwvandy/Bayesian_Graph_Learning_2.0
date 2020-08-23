@@ -55,7 +55,134 @@ class shelbycounty(object):
                     self.edge_prob[i, j] = temp/(len(self.type[i])*len(self.type[j]))
                 if(i == j):
                     self.edge_prob[i, j] = 2*temp/(len(self.type[i])*(len(self.type[j]) - 1))
-    
+                    
+    def DFS_supply2demand(self, i):
+        """Perform DFS on self.adjmatrix starting from supply node finding demand node
+        Input:
+        i - the supply node i
+
+        Output:
+        0 - there are no demand nodes reachable from supply node i
+        1 - there is at least one node reachable from supply node i
+        """
+        if(i in self.supplyseries):
+            for j in self.transeries:
+                if(self.adjmatrix[i, j] == 1):
+                    flag, node = self.DFS_supply2demand(j)
+                    if(flag == 1):
+                        return 1, node
+            
+            for j in self.demandseries:
+                if(self.adjmatrix[i, j] == 1):
+                    return 1, j
+                
+            return 0, None
+
+        if(i in self.transeries):
+            for j in self.transeries:
+                if(self.adjmatrix[i, j] == 1):
+                    flag, node = self.DFS_supply2demand(j)
+                    if(flag == 1):
+                        return 1, node
+                    
+            for j in self.demandseries:
+                if(self.adjmatrix[i, j] == 1):
+                    return 1, j
+                
+            return 0, None
+        
+        if(i in self.demandseries):
+            return 1, i
+
+    def DFS_demand2supply(self, i):
+        """Perform DFS on self.adjmatrix starting from demand node finding supply node
+        Input:
+        i - the demand node i
+
+        Output:
+        0 - there are no supply nodes reachable from demand node i
+        1 - there is at least one node reachable from demand node i
+        """
+        if(i in self.demandseries):
+            for j in self.demandseries:
+                if(self.adjmatrix[j, i] == 1):
+                    flag = self.DFS_demand2supply(j)
+                    if(flag == 1):
+                        return 1
+
+            for j in self.transeries:
+                if(self.adjmatrix[j, i] == 1):
+                    
+                    flag = self.DFS_demand2supply(j)
+                    if(flag == 1):
+                        return 1
+
+            for j in self.supplyseries:
+                if(self.adjmatrix[j, i] == 1):
+                    return 1
+                
+            return 0
+
+        if(i in self.transeries):
+            for j in self.transeries:
+                if(self.adjmatrix[j, i] == 1):
+                    flag = self.DFS_demand2supply(j)
+                    if(flag == 1):
+                        return 1
+                    
+            for j in self.supplyseries:
+                if(self.adjmatrix[j, i] == 1):
+                    return 1
+                
+            return 0
+
+        if(i in self.supplyseries):
+            return 1
+
+
+    def DFS_tran2supply(self, i):
+        """Perform DFS on self.adjmatrix starting from transmission node finding supply node
+        Input:
+        i - the transmission node i
+
+        Output:
+        0 - there are no supply nodes reachable from transmission node i
+        1 - there is at least one node reachable from transmission node i
+        """
+        
+        for j in self.transeries:
+            if(self.adjmatrix[j, i] == 1):
+                flag = self.DFS_tran2supply(j)
+                if(flag == 1):
+                    return 1
+        
+        for j in self.supplyseries:
+            if(self.adjmatrix[j, i] == 1):
+                return 1
+        
+        return 0
+        
+    def DFS_tran2demand(self, i):
+        """Perform DFS on self.adjmatrix starting from transmission node finding demand node
+        Input:
+        i - the transmission node i
+
+        Output:
+        0 - there are no demand nodes reachable from transmission node i
+        1 - there is at least one demand node reachable from transmission node i
+        """
+        
+        for j in self.transeries:
+            if(self.adjmatrix[i, j] == 1):
+                flag = self.DFS_tran2demand(j)
+                if(flag == 1):
+                    return 1
+        
+        for j in self.demandseries:
+            if(self.adjmatrix[i, j] == 1):
+                return 1
+
+        return 0
     
     def failinitialize(self):
         """Initialize the failure scenario, specifically prepare all array for saving failure data

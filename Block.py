@@ -42,6 +42,8 @@ class block(object):
         transmission - transmission
         demand - demand
         
+        !!edges between supply - supply
+        
         The general idea to initialize the SBM is to:
         1) perform Bernoulli experiment to assign edges between:
             supply -> tran, supply -> demand, tran -> tran, tran -> demand, demand -> demand
@@ -61,13 +63,21 @@ class block(object):
                 if(i != j):
                     for m in self.type[i]:
                         for n in self.type[j]:
-                            if(np.random.rand() < self.fail_prop_matrix [i, j]):
-                                self.adjmatrix[m, n] = 1
-                if(i == j):
-                    for m in range(len(self.type[i])):
-                        for n in range(m + 1, len(self.type[j])):
                             if(np.random.rand() < self.fail_prop_matrix[i, j]):
-                                self.adjmatrix[self.type[i][m], self.type[j][n]] = 1
+                                self.adjmatrix[m, n] = 1
+                if(i == j and i != 0):
+                    for m in range(len(self.type[i])):
+                        for n in range(m + 1, len(self.type[j])): #Be carefult that edge can only exist once between some pair of nodes, if i -> j, then j cannot -> i, but the possibility of j->i is not 0 
+                            if(np.random.rand() < self.fail_prop_matrix[i, j]):
+                                #Two possibility, each with 0.5: i -> j or j -> i
+                                if(np.random.rand() < 0.5):
+                                    if(self.check_path(i, n, m) == 1): #check whether there is a cycle (need a proof of completeness and acyclic)
+                                        self.adjmatrix[self.type[i][n], self.type[j][m]] = 1
+
+                                else:
+                                    if(self.check_path(i, m, n) == 1): #check whether there is a cycle
+                                        self.adjmatrix[self.type[i][m], self.type[j][n]] = 1
+
         
         #Add extra edges to ensure the above three properties
         ###Property 1: every supply node must have a demand for obtaining resources
@@ -107,20 +117,24 @@ class block(object):
             for j in self.demandseries:
                 if(self.adjmatrix[i, j] == 1):
                     return 1, j
+                
             return 0, None
 
         if(i in self.transeries):
-            for j in self.demandseries:
+            for j in self.transeries:
                 if(self.adjmatrix[i, j] == 1):
                     flag, node = self.DFS_supply2demand(j)
                     if(flag == 1):
                         return 1, node
+                    
+            for j in self.demandseries:
+                if(self.adjmatrix[i, j] == 1):
+                    return 1, j
+                
             return 0, None
         
         if(i in self.demandseries):
             return 1, i
-
-        return 0, None
 
     def DFS_demand2supply(self, i):
         """Perform DFS on self.adjmatrix starting from demand node finding supply node
@@ -132,12 +146,19 @@ class block(object):
         1 - there is at least one node reachable from demand node i
         """
         if(i in self.demandseries):
-            for j in self.transeries:
+            for j in self.demandseries:
                 if(self.adjmatrix[j, i] == 1):
                     flag = self.DFS_demand2supply(j)
                     if(flag == 1):
                         return 1
-            
+
+            for j in self.transeries:
+                if(self.adjmatrix[j, i] == 1):
+                    
+                    flag = self.DFS_demand2supply(j)
+                    if(flag == 1):
+                        return 1
+
             for j in self.supplyseries:
                 if(self.adjmatrix[j, i] == 1):
                     return 1
@@ -145,18 +166,22 @@ class block(object):
             return 0
 
         if(i in self.transeries):
-            for j in self.supplyseries:
+            for j in self.transeries:
                 if(self.adjmatrix[j, i] == 1):
                     flag = self.DFS_demand2supply(j)
                     if(flag == 1):
                         return 1
+                    
+            for j in self.supplyseries:
+                if(self.adjmatrix[j, i] == 1):
+                    return 1
+                
             return 0
-        
+
         if(i in self.supplyseries):
             return 1
 
-        return 0
-    
+
     def DFS_tran2supply(self, i):
         """Perform DFS on self.adjmatrix starting from transmission node finding supply node
         Input:
@@ -166,10 +191,18 @@ class block(object):
         0 - there are no supply nodes reachable from transmission node i
         1 - there is at least one node reachable from transmission node i
         """
+        
+        for j in self.transeries:
+            if(self.adjmatrix[j, i] == 1):
+                flag = self.DFS_tran2supply(j)
+                if(flag == 1):
+                    return 1
+        
         for j in self.supplyseries:
             if(self.adjmatrix[j, i] == 1):
                 return 1
-            return 0
+        
+        return 0
         
     def DFS_tran2demand(self, i):
         """Perform DFS on self.adjmatrix starting from transmission node finding demand node
@@ -180,7 +213,36 @@ class block(object):
         0 - there are no demand nodes reachable from transmission node i
         1 - there is at least one demand node reachable from transmission node i
         """
+        
+        for j in self.transeries:
+            if(self.adjmatrix[i, j] == 1):
+                flag = self.DFS_tran2demand(j)
+                if(flag == 1):
+                    return 1
+        
         for j in self.demandseries:
             if(self.adjmatrix[i, j] == 1):
                 return 1
-            return 0
+
+        return 0
+    
+    def check_path(self, i, m, n):
+        """Perform the DFS to check whether there is a path: m -> n so that adding an edge nm can form a cycle
+        Input:
+            i - the type of nodes: transmission or demand
+            m, n - the starting and ending node
+
+        Output:
+            0 - there are no paths
+            1 - there is a path
+        """
+        if(m == n):
+            return 1
+        
+        for j in self.type[i]:
+            if(self.adjmatrix[m, j] == 1):
+                flag = self.check_path(i, j, n)
+                if(flag == 1):
+                    return 1
+        
+        return 0
