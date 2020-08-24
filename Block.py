@@ -266,3 +266,20 @@ class block(object):
                             self.fail_prop_matrix[m, n] = 1
                         else:
                             self.fail_prop_matrix[m, n] = self.fail_prop[i, j]
+    
+    def edgeprobmatrix(self):
+        """Calculate the probability of edges
+        Input:
+            self.edge_prob: the probability of edges between certain types of nodes
+        Output:
+            self.edge_prob_matrix: the matrix of the edge probability
+        """
+        import numpy as np
+        
+        self.edge_prob_matrix = np.zeros((self.nodenum, self.nodenum), dtype = float)
+        
+        for i in range(len(self.edge_prob)):
+            for j in range(len(self.edge_prob)):
+                for m in self.type[i]:
+                    for n in self.type[j]:
+                        self.edge_prob_matrix[m, n] = self.edge_prob[i, j]

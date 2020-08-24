@@ -14,8 +14,8 @@ sc_water_data = {"name": "sc_water",
             "color": "blue",
             "edge_path": "./data/wateredges.xlsx",
             "fail_prop_matrix": np.array([[0.3, 0.3, 0.3],
-                                          [0, 0.3, 0.3],
-                                          [0, 0, 0.3]])
+                                          [0.3, 0.3, 0.3],
+                                          [0.3, 0.3, 0.3]])
             }
 
 sc_power_data = {"name": "sc_power",
@@ -29,8 +29,8 @@ sc_power_data = {"name": "sc_power",
             "color": "red",
             "edge_path": "./data/poweredges.xlsx",
             "fail_prop_matrix": np.array([[0.3, 0.3, 0.3],
-                                          [0, 0.3, 0.3],
-                                          [0, 0, 0.3]])
+                                          [0.3, 0.3, 0.3],
+                                          [0.3, 0.3, 0.3]])
             }
 
 sc_gas_data = {"name": "sc_gas",
@@ -44,8 +44,8 @@ sc_gas_data = {"name": "sc_gas",
             "color": "green",
             "edge_path": "./data/gasedges.xlsx",
             "fail_prop_matrix": np.array([[0.3, 0.3, 0.3],
-                                          [0, 0.3, 0.3],
-                                          [0, 0, 0.3]])
+                                          [0.3, 0.3, 0.3],
+                                          [0.3, 0.3, 0.3]])
             }
 
 sc_data = [sc_water_data, sc_power_data, sc_gas_data]
@@ -117,8 +117,8 @@ water_data = {"name": "water",
             "demandnum": 34,
             "color": "blue",
             "fail_prop_matrix": np.array([[0.3, 0.3, 0.3],
-                                          [0, 0.3, 0.3],
-                                          [0, 0, 0.3]])
+                                          [0.3, 0.3, 0.3],
+                                          [0.3, 0.3, 0.3]])
             }
 
 power_data = {"name": "power",
@@ -131,8 +131,9 @@ power_data = {"name": "power",
             "demandnum": 37,
             "color": "red",
             "fail_prop_matrix": np.array([[0.3, 0.3, 0.3],
-                                          [0, 0.3, 0.3],
-                                          [0, 0, 0.3]])
+                                          [0.3, 0.3, 0.3],
+                                          [0.3, 0.3, 0.3]])
+            }
 
 gas_data = {"name": "gas",
             "supplyname": "Gas gate station",
@@ -144,8 +145,8 @@ gas_data = {"name": "gas",
             "demandnum": 6,
             "color": "green",
             "fail_prop_matrix": np.array([[0.3, 0.3, 0.3],
-                                          [0, 0.3, 0.3],
-                                          [0, 0, 0.3]])
+                                          [0.3, 0.3, 0.3],
+                                          [0.3, 0.3, 0.3]])
             }
 
 block_data = [water_data, power_data, gas_data]
@@ -202,7 +203,7 @@ interblock_pd2g = {"name": "block_pdemand2gas",
 
 
 block_inter_data = [interblock_wd2ps, interblock_gd2ps, interblock_pd2w, interblock_pd2g]
-edge_prob = []
+
 
 
 # ##General conditional failure probability

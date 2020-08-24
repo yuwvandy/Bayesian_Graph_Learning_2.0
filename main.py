@@ -10,7 +10,7 @@ from Interblock import interblock
 from Sc_internetwork import sc_internetwork
 from Sc_intersystem import sc_intersystem
 from Block_intersystem import block_intersystem
-
+import Bayesianelement_cal as beycal
 
 
 
@@ -99,6 +99,7 @@ def initial_prior(network_data, internetwork_data, edge_prob):
     for i in range(len(block_networks)):
         block_networks[i].adj_matrix()
         block_networks[i].edge_failure_matrix()
+        block_networks[i].edgeprobmatrix()
 
     #Initialize the four interdependent networks
     block_inter_wd2ps = interblock(internetwork_data[0], block_networks)
@@ -110,14 +111,79 @@ def initial_prior(network_data, internetwork_data, edge_prob):
     for i in range(len(block_internetworks)):
         block_internetworks[i].adj_matrix()
         block_internetworks[i].failpropmatrix()
+        block_internetworks[i].edgeprobmatrix()
             
     block_system = block_intersystem(block_networks, block_internetworks)
     block_system.adj_matrix()
     block_system.edge_failure_matrix()
-    
+    block_system.edgeprobmatrix()
     return block_system, block_networks, block_internetworks
 
+
+##Generate failure sequence data based on simulation
+data_num = 10
+fail_seq_data = faildata_simulation(data_num, sc_system, seed = 1)
+
+##Generate the initial graph topology by first samplying system and then adding edges based on failure sequence data
+#It should be noticed that the initial prior should guarantee the likelihood is not 0 so that MCMC chain can proceed to converge
 block_system, block_networks, block_internetworks = initial_prior(dt.block_data, dt.block_inter_data, edge_prob)
+
+for i in range(len(fail_seq_data)):
+    for j in range(len(fail_seq_data[i]) - 1):
+        node_failed = []
+        
+        for k in range(len(fail_seq_data[i][j])):
+            if(fail_seq_data[i][j][k] == 1):
+                node_failed.append(k)
+        
+        for k in range(len(fail_seq_data[i][j + 1])):
+            if(fail_seq_data[i][j + 1][k] == 1):
+                #If at time t + 1 node k fails, than it must be connected to at least one of the failed nodes at time t step, randomly choose one
+                node = node_failed[np.random.randint(len(node_failed))]
+                block_system.adjmatrix[node, k] = 1
+
+##MCMC: Metropolis hasting algorithm
+experiment = []
+while(len(experiment) <= 5):
+    adj_list = []
+    adjmatrix = copy.deepcopy(block_system.adjmatrix)
+    #Randomly interference so that we have random starting points
+    temp = 0
+    Temp = np.random.randint(200)
+    while(temp <= Temp):
+        while(1):
+            i, j = np.random.randint(block_system.nodenum, size = 2)
+            if(i != j and adjmatrix[i, j] == 0):
+                break
+        adjmatrix[i, j] = 1
+        temp += 1
+    
+    adj_list.append(adjmatrix)
+    plike2_1 = np.empty(len(fail_seq_data), dtype = float)
+    plike2_2 = np.empty(len(fail_seq_data), dtype = float)
+    for i in range(len(fail_seq_data)):
+        plike2_1[i] = beycal.likelihood(fail_seq_data[i], adjmatrix, block_system.fail_prop_matrix)
+    
+    while(len(adj_list) <= 1000):
+        adjmatrix2, priorratio = beycal.proposal(adjmatrix, block_system.edge_prob_matrix)
+
+        accept_ratio = priorratio
+        for i in range(len(fail_seq_data)):
+            plike2_2[i] = beycal.likelihood(fail_seq_data[i], adjmatrix2, block_system.fail_prop_matrix)
+            accept_ratio = accept_ratio*plike2_2[i]/plike2_1[i]
+        
+        
+        if(np.random.rand() < accept_ratio):
+            plike2_1 = copy.deepcopy(plike2_2)
+            adjmatrix = adjmatrix2
+            adj_list.append(adjmatrix)
+            print(np.sum(adjmatrix)/(125*125), len(adj_list))
+
+    experiment.append(adj_list)
+    print("experiment one more")
+
+                
+
 
 
 

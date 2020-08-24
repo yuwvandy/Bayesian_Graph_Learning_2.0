@@ -84,4 +84,19 @@ class interblock(object):
         for i in range(self.supplynum):
             for j in range(self.demandnum):
                 self.fail_prop_matrix[i, j] = self.fail_prop
+    
+    def edgeprobmatrix(self):
+        """Calculate the probability of edges
+        Input:
+            self.edge_prob: the probability of edges between certain types of nodes
+        Output:
+            self.edge_prob_matrix: the matrix of the edge probability
+        """
+        import numpy as np
+        
+        self.edge_prob_matrix = np.zeros((self.supplynum, self.demandnum), dtype = float)
+        
+        for i in range(self.supplynum):
+            for j in range(self.demandnum):
+                self.edge_prob_matrix[i, j] = self.edge_prob
                 

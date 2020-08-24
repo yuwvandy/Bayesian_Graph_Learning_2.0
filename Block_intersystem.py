@@ -67,7 +67,7 @@ class block_intersystem(object):
         import numpy as np
         import copy
         
-        self.fail_prop_matrix = np.zeros((self.nodenum, self.nodenum), dtype = float)
+        self.fail_prop_matrix = 0.08*np.ones((self.nodenum, self.nodenum), dtype = float)
         
         for i in range(len(self.networks)):
             self.fail_prop_matrix[self.nodeseries[i][0]:(self.nodeseries[i][-1] + 1), self.nodeseries[i][0]:(self.nodeseries[i][-1] + 1)] = copy.deepcopy(self.networks[i].fail_prop_matrix)
@@ -75,6 +75,20 @@ class block_intersystem(object):
         for i in range(len(self.internetworks)):
             self.fail_prop_matrix[(self.internetworks[i].supply_start_num + self.internetworks[i].supplyseries[0]):(self.internetworks[i].supply_start_num + self.internetworks[i].supplyseries[-1] + 1), :][:, (self.internetworks[i].demand_start_num + self.internetworks[i].demandseries[0]):(self.internetworks[i].demand_start_num + self.internetworks[i].demandseries[-1] + 1)] = copy.deepcopy(self.internetworks[i].fail_prop_matrix)
             
+    def edgeprobmatrix(self):
+        """Calculate the probability matrix of edges
+        """
+        import numpy as np
+        import copy
+        
+        self.edge_prob_matrix = np.zeros((self.nodenum, self.nodenum), dtype = float)
+        temp = 0
+        for i in range(len(self.networks)):
+            self.edge_prob_matrix[self.nodeseries[i][0]:(self.nodeseries[i][-1] + 1), self.nodeseries[i][0]:(self.nodeseries[i][-1] + 1)] = copy.deepcopy(self.networks[i].edge_prob_matrix)
+            temp += np.sum(self.networks[i].edge_prob_matrix)
+        for i in range(len(self.internetworks)):
+            self.edge_prob_matrix[(self.internetworks[i].supply_start_num + self.internetworks[i].supplyseries[0]):(self.internetworks[i].supply_start_num + self.internetworks[i].supplyseries[-1] + 1), :][:, (self.internetworks[i].demand_start_num + self.internetworks[i].demandseries[0]):(self.internetworks[i].demand_start_num + self.internetworks[i].demandseries[-1] + 1)] = copy.deepcopy(self.internetworks[i].edge_prob_matrix)
+            temp += np.sum(self.internetworks[i].edge_prob_matrix)
         
     def failure_probability(self):
         """Calculate the node failure probability based on failure_matrix
