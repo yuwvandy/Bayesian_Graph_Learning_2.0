@@ -5,7 +5,7 @@ Created on Fri Aug 21 13:58:07 2020
 @author: 10624
 """
 
-class sbm(object):
+class sc_intersystem(object):
     def __init__(self, networks, internetworks):
         """Set up the class of stochastic block model with networks and internetworks as the subelement to comprise the whole system
         Input:
@@ -44,8 +44,7 @@ class sbm(object):
         for i in range(len(self.internetworks)):
             self.adjmatrix[(self.internetworks[i].supply_start_num + self.internetworks[i].supplyseries[0]):(self.internetworks[i].supply_start_num + self.internetworks[i].supplyseries[-1] + 1), :][:, (self.internetworks[i].demand_start_num + self.internetworks[i].demandseries[0]):(self.internetworks[i].demand_start_num + self.internetworks[i].demandseries[-1] + 1)] = copy.deepcopy(self.internetworks[i].adjmatrix)
             temp += np.sum(self.internetworks[i].adjmatrix)
-            
-        print(temp, np.sum(self.adjmatrix))
+        
 
             
     def failinitialize(self):

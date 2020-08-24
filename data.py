@@ -116,9 +116,9 @@ water_data = {"name": "water",
             "trannum": 6,
             "demandnum": 34,
             "color": "blue",
-            "fail_prop_matrix": np.array([[0.08, 0.08, 0.08],
-                                          [0, 0.08, 0.08],
-                                          [0, 0, 0.08]])
+            "fail_prop_matrix": np.array([[0.3, 0.3, 0.3],
+                                          [0, 0.3, 0.3],
+                                          [0, 0, 0.3]])
             }
 
 power_data = {"name": "power",
@@ -130,10 +130,9 @@ power_data = {"name": "power",
             "trannum": 14,
             "demandnum": 37,
             "color": "red",
-            "fail_prop_matrix": np.array([[0.08, 0.08, 0.08],
-                                          [0, 0.08, 0.08],
-                                          [0, 0, 0.08]])
-            }
+            "fail_prop_matrix": np.array([[0.3, 0.3, 0.3],
+                                          [0, 0.3, 0.3],
+                                          [0, 0, 0.3]])
 
 gas_data = {"name": "gas",
             "supplyname": "Gas gate station",
@@ -144,9 +143,78 @@ gas_data = {"name": "gas",
             "trannum": 7,
             "demandnum": 6,
             "color": "green",
-            "fail_prop_matrix": np.array([[0.08, 0.08, 0.08],
-                                          [0, 0.08, 0.08],
-                                          [0, 0, 0.08]])
+            "fail_prop_matrix": np.array([[0.3, 0.3, 0.3],
+                                          [0, 0.3, 0.3],
+                                          [0, 0, 0.3]])
             }
 
 block_data = [water_data, power_data, gas_data]
+
+##########----------------------------Data for interdependent links between the above three blocks
+##Water demand -> power supply
+interblock_wd2ps = {"name": "block_wdemand2psupply",
+               "network1": 0, #which network in networks object list, starting from 0
+               "network2": 1,
+               "from": [2], #which type of nodes in network1 that nodes in network2 depend on
+               "to": [0],
+               "supply_start_num": 0,
+               "demand_start_num": water_data["nodenum"],
+               "edge_prob": 0.1,
+               "fail_prop": 0.08
+               }
+
+##Gas demand -> power supply
+interblock_gd2ps = {"name": "block_gdemand2psupply",
+               "network1": 2,
+               "network2": 1,
+               "from": [2],
+               "to": [0],
+               "supply_start_num": water_data["nodenum"] + power_data["nodenum"],
+               "demand_start_num": water_data["nodenum"],
+               "edge_prob": 0.1,
+               "fail_prop": 0.08
+               }
+
+##Power demand -> all water nodes
+interblock_pd2w = {"name": "block_pdemand2water",
+               "network1": 1,
+               "network2": 0,
+               "from": [2],
+               "to": [0, 1, 2],
+               "supply_start_num": water_data["nodenum"],
+               "demand_start_num": 0,
+               "edge_prob": 0.1,
+               "fail_prop": 0.08
+               }
+
+##Power demand -> all gas nodes
+interblock_pd2g = {"name": "block_pdemand2gas",
+               "network1": 1,
+               "network2": 2,
+               "from": [2],
+               "to": [0, 1, 2],
+               "supply_start_num": water_data["nodenum"],
+               "demand_start_num": water_data["nodenum"] + power_data["nodenum"],
+               "edge_prob": 0.1,
+               "fail_prop": 0.08
+               }
+
+
+
+block_inter_data = [interblock_wd2ps, interblock_gd2ps, interblock_pd2w, interblock_pd2g]
+edge_prob = []
+
+
+# ##General conditional failure probability
+# #Notice: the conditional failure probability should be the failure probability given the existing physical links
+# #All nonexistence conditional failure relationship is assumed to be the same value
+# fail_prob_system = np.array([[0.3, 0.3, 0.3, 0, 0, 0, 0, 0, 0],\
+#                     [0, 0.3, 0.3, 0, 0, 0, 0, 0, 0],\
+#                     [0, 0, 0.3, 0.08, 0, 0, 0, 0, 0],\
+#                     [0, 0, 0, 0.3, 0.3, 0.3, 0, 0, 0],\
+#                     [0, 0, 0, 0, 0.3, 0.3, 0, 0, 0],\
+#                     [0.08, 0.08, 0.08, 0, 0, 0.3, 0.08, 0.08, 0.08],\
+#                     [0, 0, 0, 0, 0, 0, 0.3, 0.3, 0.3],\
+#                     [0, 0, 0, 0, 0, 0, 0, 0.3, 0.3],\
+#                     [0, 0, 0, 0.08, 0, 0, 0, 0, 0.3]])
+                        

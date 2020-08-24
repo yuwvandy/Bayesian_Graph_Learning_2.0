@@ -6,11 +6,12 @@ Created on Thu Aug 20 15:19:44 2020
 """
 
 class block(object):
-    def __init__(self, network_data):
+    def __init__(self, network_data, edge_prob):
         """
         Define the class of individual block within SBM
         Input:
             network_data
+            edge_prob: the probability of edges between different types of nodes obtained from shelby county system
 
         Output: 
             the class of the block
@@ -20,7 +21,8 @@ class block(object):
 
         self.name = network_data["name"]
         self.color = network_data["color"]
-        self.fail_prop_matrix = network_data["fail_prop_matrix"]
+        self.fail_prop = network_data["fail_prop_matrix"]
+        self.edge_prob = edge_prob
         
         self.supplynum, self.trannum, self.demandnum = network_data["supplynum"], network_data["trannum"], network_data["demandnum"]
         self.supplyname, self.tranname, self.demandname = network_data["supplyname"], network_data["tranname"], network_data["demandname"]
@@ -63,12 +65,12 @@ class block(object):
                 if(i != j):
                     for m in self.type[i]:
                         for n in self.type[j]:
-                            if(np.random.rand() < self.fail_prop_matrix[i, j]):
+                            if(np.random.rand() < self.edge_prob[i, j]):
                                 self.adjmatrix[m, n] = 1
                 if(i == j and i != 0):
                     for m in range(len(self.type[i])):
                         for n in range(m + 1, len(self.type[j])): #Be carefult that edge can only exist once between some pair of nodes, if i -> j, then j cannot -> i, but the possibility of j->i is not 0 
-                            if(np.random.rand() < self.fail_prop_matrix[i, j]):
+                            if(np.random.rand() < self.edge_prob[i, j]):
                                 #Two possibility, each with 0.5: i -> j or j -> i
                                 if(np.random.rand() < 0.5):
                                     if(self.check_path(i, n, m) == 1): #check whether there is a cycle (need a proof of completeness and acyclic)
@@ -246,3 +248,21 @@ class block(object):
                     return 1
         
         return 0
+    
+    def edge_failure_matrix(self):
+        """Calculate the probability of failure propagation within same type of nodes and different types of nodes
+        Input:
+            fail_prop: the failure probability matrix
+        """
+        import numpy as np
+        
+        self.fail_prop_matrix = np.zeros((self.nodenum, self.nodenum), dtype = float)
+        
+        for i in range(len(self.fail_prop)):
+            for j in range(len(self.fail_prop)):
+                for m in self.type[i]:
+                    for n in self.type[j]:
+                        if(m == n):
+                            self.fail_prop_matrix[m, n] = 1
+                        else:
+                            self.fail_prop_matrix[m, n] = self.fail_prop[i, j]

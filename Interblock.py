@@ -1,30 +1,31 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Aug 21 08:37:40 2020
+Created on Sun Aug 23 13:06:54 2020
 
 @author: 10624
 """
 
-class sc_internetwork(object):
-    def __init__(self, inter_data, sc_networks):
+class interblock(object):
+    def __init__(self, inter_block_data, networks):
         """ Set up the class of 2-partite interdependent networks: demand -> ...
         Input:
-            inter_data: the data of interdependent networks
+            inter_block_data: the data of interdependent blocks
+            networks: the data of each individual block
         """
         import numpy as np
         
-        self.name = inter_data["name"]
+        self.name = inter_block_data["name"]
         
-        self.network1_num = inter_data["network1"]
-        self.network2_num = inter_data["network2"]
+        self.network1_num = inter_block_data["network1"]
+        self.network2_num = inter_block_data["network2"]
         
-        self.node1_num = inter_data["from"]
-        self.node2_num = inter_data["to"]
+        self.node1_num = inter_block_data["from"]
+        self.node2_num = inter_block_data["to"]
         
-        self.edge_prob = inter_data["edge_prob"]
+        self.edge_prob = inter_block_data["edge_prob"]
         
-        self.network1 = sc_networks[self.network1_num]
-        self.network2 = sc_networks[self.network2_num]
+        self.network1 = networks[self.network1_num]
+        self.network2 = networks[self.network2_num]
         
         self.supplyseries = self.network1.type[self.node1_num[0]]
         self.demandseries = []
@@ -35,10 +36,10 @@ class sc_internetwork(object):
         self.supplynum = len(self.supplyseries)
         self.demandnum = len(self.demandseries)
         
-        self.supply_start_num = inter_data["supply_start_num"]
-        self.demand_start_num = inter_data["demand_start_num"]
+        self.supply_start_num = inter_block_data["supply_start_num"]
+        self.demand_start_num = inter_block_data["demand_start_num"]
         
-        self.fail_prop = inter_data["fail_prop"]
+        self.fail_prop = inter_block_data["fail_prop"]
     
     def adj_matrix(self):
         """ Create the adjacent matrix of the internetworks
