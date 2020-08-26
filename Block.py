@@ -34,6 +34,8 @@ class block(object):
         self.nodeseries = np.arange(0, self.nodenum, 1)
         
         self.type = [self.supplyseries, self.transeries, self.demandseries]
+        
+        self.start_num = network_data["startnum"]
 
     def adj_matrix(self):
         """

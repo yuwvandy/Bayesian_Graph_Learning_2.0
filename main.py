@@ -11,7 +11,7 @@ from Sc_internetwork import sc_internetwork
 from Sc_intersystem import sc_intersystem
 from Block_intersystem import block_intersystem
 import Bayesianelement_cal as beycal
-
+import copy
 
 
 
@@ -121,68 +121,107 @@ def initial_prior(network_data, internetwork_data, edge_prob):
 
 
 ##Generate failure sequence data based on simulation
-data_num = 10
+data_num = 5
 fail_seq_data = faildata_simulation(data_num, sc_system, seed = 1)
 
-##Generate the initial graph topology by first samplying system and then adding edges based on failure sequence data
-#It should be noticed that the initial prior should guarantee the likelihood is not 0 so that MCMC chain can proceed to converge
-block_system, block_networks, block_internetworks = initial_prior(dt.block_data, dt.block_inter_data, edge_prob)
-
-for i in range(len(fail_seq_data)):
-    for j in range(len(fail_seq_data[i]) - 1):
-        node_failed = []
-        
-        for k in range(len(fail_seq_data[i][j])):
-            if(fail_seq_data[i][j][k] == 1):
-                node_failed.append(k)
-        
-        for k in range(len(fail_seq_data[i][j + 1])):
-            if(fail_seq_data[i][j + 1][k] == 1):
-                #If at time t + 1 node k fails, than it must be connected to at least one of the failed nodes at time t step, randomly choose one
-                node = node_failed[np.random.randint(len(node_failed))]
-                block_system.adjmatrix[node, k] = 1
-
 ##MCMC: Metropolis hasting algorithm
+experiment_num = 5
+initial_random_num = 50
+num = 5000
+
 experiment = []
-while(len(experiment) <= 5):
-    adj_list = []
-    adjmatrix = copy.deepcopy(block_system.adjmatrix)
-    #Randomly interference so that we have random starting points
-    temp = 0
-    Temp = np.random.randint(200)
-    while(temp <= Temp):
-        while(1):
-            i, j = np.random.randint(block_system.nodenum, size = 2)
-            if(i != j and adjmatrix[i, j] == 0):
-                break
-        adjmatrix[i, j] = 1
-        temp += 1
+for i in range(experiment_num):
+    ##Generate the initial graph topology by first samplying system and then adding edges based on failure sequence data
+    block_system, block_networks, block_internetworks = initial_prior(dt.block_data, dt.block_inter_data, edge_prob)
     
-    adj_list.append(adjmatrix)
-    plike2_1 = np.empty(len(fail_seq_data), dtype = float)
-    plike2_2 = np.empty(len(fail_seq_data), dtype = float)
-    for i in range(len(fail_seq_data)):
-        plike2_1[i] = beycal.likelihood(fail_seq_data[i], adjmatrix, block_system.fail_prop_matrix)
+    #network2internetwork dictionary
+    network2internetwork = np.array([[None, block_internetworks[0], None], [block_internetworks[2], None, block_internetworks[3]], [None, block_internetworks[1], None]])
     
-    while(len(adj_list) <= 1000):
-        adjmatrix2, priorratio = beycal.proposal(adjmatrix, block_system.edge_prob_matrix)
-
-        accept_ratio = priorratio
-        for i in range(len(fail_seq_data)):
-            plike2_2[i] = beycal.likelihood(fail_seq_data[i], adjmatrix2, block_system.fail_prop_matrix)
-            accept_ratio = accept_ratio*plike2_2[i]/plike2_1[i]
-        
-        
-        if(np.random.rand() < accept_ratio):
-            plike2_1 = copy.deepcopy(plike2_2)
-            adjmatrix = adjmatrix2
-            adj_list.append(adjmatrix)
-            print(np.sum(adjmatrix)/(125*125), len(adj_list))
-
+    #It should be noticed that the initial prior should guarantee the likelihood is not 0 so that MCMC chain can proceed to converge
+    prior_adjmatrix = beycal.prior2(fail_seq_data, block_system, network2internetwork)
+    
+    #MCMC
+    adj_list = beycal.MCMC_MH(i, prior_adjmatrix, initial_random_num, num, block_system, fail_seq_data, network2internetwork, sc_system)
     experiment.append(adj_list)
-    print("experiment one more")
+    print("experiment {} ends".format(i))
 
-                
+
+
+
+# experiment = []
+# while(len(experiment) <= 10):
+#     adj_list = []
+#     adjmatrix = copy.deepcopy(block_system.adjmatrix)
+#     #Randomly interference so that we have random starting points
+#     temp = 0
+#     Temp = np.random.randint(100)
+#     while(temp <= Temp):
+#         while(1):
+#             i, j = np.random.randint(block_system.nodenum, size = 2)
+#             if(i != j and adjmatrix[i, j] == 0):
+#                 break
+#         adjmatrix[i, j] = 1
+#         temp += 1
+    
+#     adj_list.append(adjmatrix)
+#     plike2_1 = np.empty(len(fail_seq_data), dtype = float)
+#     plike2_2 = np.empty(len(fail_seq_data), dtype = float)
+#     for i in range(len(fail_seq_data)):
+#         plike2_1[i] = beycal.likelihood(fail_seq_data[i], adjmatrix, block_system.fail_prop_matrix)
+    
+#     while(len(adj_list) <= 3000):
+#         # adjmatrix2, priorratio = beycal.proposal1(adjmatrix, block_system.edge_prob_matrix)
+#         adjmatrix2, priorratio, flag, i, j = beycal.proposal2(adjmatrix, block_system, dt.candidate_edge, network2internetwork)
+#         # print(accept_ratio, i, j)
+#         if(flag == 0):
+#             continue
+
+#         accept_ratio = priorratio
+#         for i in range(len(fail_seq_data)):
+#             plike2_2[i] = beycal.likelihood(fail_seq_data[i], adjmatrix2, block_system.fail_prop_matrix)
+#             accept_ratio = accept_ratio*plike2_2[i]/plike2_1[i]
+        
+        
+#         if(np.random.rand() < accept_ratio):
+#             plike2_1 = copy.deepcopy(plike2_2)
+#             adjmatrix = adjmatrix2
+#             adj_list.append(adjmatrix)
+#             print(np.sum(adjmatrix)/(125*125), len(adj_list), np.sum(sc_system.adjmatrix)/(125*125))
+
+#     experiment.append(adj_list)
+#     # print("experiment one more")
+    
+
+
+##Given the MCMC chain - adj_list, post-procession
+degree_list = []
+for i in range(len(experiment[1])):
+    degree_list.append(np.sum(experiment[1][i])/(sc_system.nodenum*sc_system.nodenum))
+
+import matplotlib.pyplot as plt
+plt.plot(np.arange(0, len(degree_list), 1), degree_list)
+plt.xlabel("Iteration number", fontsize = 15, weight = "bold")
+plt.ylabel("Degree value", fontsize = 15, weight = "bold")
+
+adj_heatmap = sf.cal_adjmatrix_heatmap(experiment[0], sc_system.adjmatrix, warm_up = 2000)
+import seaborn as sns
+sns.heatmap(sc_system.adjmatrix, cmap = "cividis")
+sns.heatmap(adj_heatmap)
+
+#threshold to generate the eventual adjacent matrix given adj_heatmap
+accuracylist = []
+accuracylist = []
+accuracylist = []
+accuracylist = []
+for threshold in np.arange(0, 1.01, 0.01):
+    infer_adjmatrix = np.zeros((sc_system.nodenum, sc_system.nodenum), dtype = int)
+    for i in range(sc_system.nodenum):
+        for j in range(sc_system.nodenum):
+            if(adj_heatmap[i, j] >= threshold):
+                infer_adjmatrix[i, j] = 1
+    
+    accuracy, precision, recall, F1 = performance(infer_adjmatrix, sc_system.adjmatrix)
+    
 
 
 

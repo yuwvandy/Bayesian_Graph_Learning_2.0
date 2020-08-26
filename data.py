@@ -118,7 +118,8 @@ water_data = {"name": "water",
             "color": "blue",
             "fail_prop_matrix": np.array([[0.3, 0.3, 0.3],
                                           [0.3, 0.3, 0.3],
-                                          [0.3, 0.3, 0.3]])
+                                          [0.3, 0.3, 0.3]]),
+            "startnum": 0
             }
 
 power_data = {"name": "power",
@@ -132,7 +133,8 @@ power_data = {"name": "power",
             "color": "red",
             "fail_prop_matrix": np.array([[0.3, 0.3, 0.3],
                                           [0.3, 0.3, 0.3],
-                                          [0.3, 0.3, 0.3]])
+                                          [0.3, 0.3, 0.3]]),
+            "startnum": 49
             }
 
 gas_data = {"name": "gas",
@@ -146,7 +148,8 @@ gas_data = {"name": "gas",
             "color": "green",
             "fail_prop_matrix": np.array([[0.3, 0.3, 0.3],
                                           [0.3, 0.3, 0.3],
-                                          [0.3, 0.3, 0.3]])
+                                          [0.3, 0.3, 0.3]]),
+            "startnum": 109
             }
 
 block_data = [water_data, power_data, gas_data]
@@ -218,4 +221,13 @@ block_inter_data = [interblock_wd2ps, interblock_gd2ps, interblock_pd2w, interbl
 #                     [0, 0, 0, 0, 0, 0, 0.3, 0.3, 0.3],\
 #                     [0, 0, 0, 0, 0, 0, 0, 0.3, 0.3],\
 #                     [0, 0, 0, 0.08, 0, 0, 0, 0, 0.3]])
-                        
+
+##Data used in MCMC
+#candidate edge to be selected in proposal: five configuration in each three individual networks and four interdependent links
+candidate_edge = [[0, 1], [0, 2], [1, 1], [1, 2], [2 ,2],\
+                  [3, 4], [3, 5], [4, 4], [4, 5], [5, 5],\
+                  [6, 7], [6, 8], [7, 7], [7, 8], [8, 8],\
+                  [2, 3], [8, 3],\
+                  [5, 0], [5, 1], [5, 2],\
+                  [5, 6], [5, 7], [5, 8]
+                 ]

@@ -33,6 +33,23 @@ class block_intersystem(object):
                                self.networks[1].supplyseries + self.networks[0].nodenum, self.networks[1].transeries + self.networks[0].nodenum, self.networks[1].demandseries + self.networks[0].nodenum,\
                                self.networks[2].supplyseries + self.networks[0].nodenum + self.networks[1].nodenum, self.networks[2].transeries + self.networks[0].nodenum + self.networks[1].nodenum, self.networks[2].demandseries + self.networks[0].nodenum + self.networks[1].nodenum]
     
+        self.nodesearchtable()
+        
+    def nodesearchtable(self):
+        """Create a node search table where we can assess the class the node belongs to , the node subtype and the node while type
+        """
+        import numpy as np
+        
+        self.nodetable = np.zeros((self.nodenum, 3), dtype = int)
+        
+        for i in range(len(self.networks)):
+            for j in range(len(self.networks[i].type)):
+                for k in self.networks[i].type[j]:
+                    self.nodetable[k + self.networks[i].start_num, 0] = i
+                    self.nodetable[k + self.networks[i].start_num, 1] = j
+                    self.nodetable[k + self.networks[i].start_num, 2] = k
+                    
+
     def adj_matrix(self):
         """ Set up the whole adjacent matrix of the interdependent systems
         """
@@ -85,10 +102,10 @@ class block_intersystem(object):
         temp = 0
         for i in range(len(self.networks)):
             self.edge_prob_matrix[self.nodeseries[i][0]:(self.nodeseries[i][-1] + 1), self.nodeseries[i][0]:(self.nodeseries[i][-1] + 1)] = copy.deepcopy(self.networks[i].edge_prob_matrix)
-            temp += np.sum(self.networks[i].edge_prob_matrix)
+
         for i in range(len(self.internetworks)):
             self.edge_prob_matrix[(self.internetworks[i].supply_start_num + self.internetworks[i].supplyseries[0]):(self.internetworks[i].supply_start_num + self.internetworks[i].supplyseries[-1] + 1), :][:, (self.internetworks[i].demand_start_num + self.internetworks[i].demandseries[0]):(self.internetworks[i].demand_start_num + self.internetworks[i].demandseries[-1] + 1)] = copy.deepcopy(self.internetworks[i].edge_prob_matrix)
-            temp += np.sum(self.internetworks[i].edge_prob_matrix)
+
         
     def failure_probability(self):
         """Calculate the node failure probability based on failure_matrix

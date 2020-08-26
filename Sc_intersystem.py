@@ -36,15 +36,13 @@ class sc_intersystem(object):
         import numpy as np
         
         self.adjmatrix = np.zeros((self.nodenum, self.nodenum), dtype = int)
-        temp = 0
+
         for i in range(len(self.networks)):
             self.adjmatrix[self.nodeseries[i][0]:(self.nodeseries[i][-1] + 1), self.nodeseries[i][0]:(self.nodeseries[i][-1] + 1)] = copy.deepcopy(self.networks[i].adjmatrix)
-            temp += np.sum(self.networks[i].adjmatrix)
 
         for i in range(len(self.internetworks)):
             self.adjmatrix[(self.internetworks[i].supply_start_num + self.internetworks[i].supplyseries[0]):(self.internetworks[i].supply_start_num + self.internetworks[i].supplyseries[-1] + 1), :][:, (self.internetworks[i].demand_start_num + self.internetworks[i].demandseries[0]):(self.internetworks[i].demand_start_num + self.internetworks[i].demandseries[-1] + 1)] = copy.deepcopy(self.internetworks[i].adjmatrix)
-            temp += np.sum(self.internetworks[i].adjmatrix)
-        
+
 
             
     def failinitialize(self):
