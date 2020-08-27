@@ -125,12 +125,17 @@ data_num = 5
 fail_seq_data = faildata_simulation(data_num, sc_system, seed = 1)
 
 ##MCMC: Metropolis hasting algorithm
-experiment_num = 5
+experiment_num = 50
 initial_random_num = 50
 num = 5000
 
+import time
+
 experiment = []
+time_list = []
+
 for i in range(experiment_num):
+    start_time = time.time()
     ##Generate the initial graph topology by first samplying system and then adding edges based on failure sequence data
     block_system, block_networks, block_internetworks = initial_prior(dt.block_data, dt.block_inter_data, edge_prob)
     
@@ -141,56 +146,43 @@ for i in range(experiment_num):
     prior_adjmatrix = beycal.prior2(fail_seq_data, block_system, network2internetwork)
     
     #MCMC
-    adj_list = beycal.MCMC_MH(i, prior_adjmatrix, initial_random_num, num, block_system, fail_seq_data, network2internetwork, sc_system)
+    adj_list = beycal.MCMC_MH(i, prior_adjmatrix, num, block_system, fail_seq_data, network2internetwork, sc_system)
+    
+    time_list.append(time.time() - start_time)
+    
     experiment.append(adj_list)
     print("experiment {} ends".format(i))
 
 
-
-
-# experiment = []
-# while(len(experiment) <= 10):
-#     adj_list = []
-#     adjmatrix = copy.deepcopy(block_system.adjmatrix)
-#     #Randomly interference so that we have random starting points
-#     temp = 0
-#     Temp = np.random.randint(100)
-#     while(temp <= Temp):
-#         while(1):
-#             i, j = np.random.randint(block_system.nodenum, size = 2)
-#             if(i != j and adjmatrix[i, j] == 0):
-#                 break
-#         adjmatrix[i, j] = 1
-#         temp += 1
+def feature_cal(experiment, feature):
+    """ Calculate the feature of the adjacent matrix in the experiment list
+    Input:
+        experiment: list, containing several MCMC chains and each of them are composed by adjacent matrixs
+        feature: the feature we want to calculate, string
+    Output:
+        feature_list: the list of features in the chain
+    """
     
-#     adj_list.append(adjmatrix)
-#     plike2_1 = np.empty(len(fail_seq_data), dtype = float)
-#     plike2_2 = np.empty(len(fail_seq_data), dtype = float)
-#     for i in range(len(fail_seq_data)):
-#         plike2_1[i] = beycal.likelihood(fail_seq_data[i], adjmatrix, block_system.fail_prop_matrix)
+    feature_list = []
     
-#     while(len(adj_list) <= 3000):
-#         # adjmatrix2, priorratio = beycal.proposal1(adjmatrix, block_system.edge_prob_matrix)
-#         adjmatrix2, priorratio, flag, i, j = beycal.proposal2(adjmatrix, block_system, dt.candidate_edge, network2internetwork)
-#         # print(accept_ratio, i, j)
-#         if(flag == 0):
-#             continue
-
-#         accept_ratio = priorratio
-#         for i in range(len(fail_seq_data)):
-#             plike2_2[i] = beycal.likelihood(fail_seq_data[i], adjmatrix2, block_system.fail_prop_matrix)
-#             accept_ratio = accept_ratio*plike2_2[i]/plike2_1[i]
+    if(feature == "degree"):
+        for i in range(len(experiment)):
+            feature_sublist = []
+            for j in range(len(experiment[i])):
+                feature_sublist.append(sf.degree_cal(experiment[i][j]))
         
-        
-#         if(np.random.rand() < accept_ratio):
-#             plike2_1 = copy.deepcopy(plike2_2)
-#             adjmatrix = adjmatrix2
-#             adj_list.append(adjmatrix)
-#             print(np.sum(adjmatrix)/(125*125), len(adj_list), np.sum(sc_system.adjmatrix)/(125*125))
-
-#     experiment.append(adj_list)
-#     # print("experiment one more")
+            feature_list.append(feature_sublist)
     
+    return feature_list
+
+degree_list = feature_cal(experiment, "degree")
+
+import matplotlib.pyplot as plt
+for i in range(len(degree_list)):
+    plt.plot(np.arange(0, len(degree_list[i]), 1), degree_list[i], label = "experiment {}".format(i + 1))
+plt.xlabel("Iteration number", fontsize = 15, weight = "bold")
+plt.ylabel("Degree value", fontsize = 15, weight = "bold")
+plt.legend(loc = "best", fontsize = 12, frameon = 0)
 
 
 ##Given the MCMC chain - adj_list, post-procession

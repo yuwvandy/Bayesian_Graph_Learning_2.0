@@ -125,6 +125,19 @@ def check_cycle(adjmatrix, root, traverse, stack):
     stack.remove(root)
     return 1
 
+def degree_cal(adjmatrix):
+    """ Calculate the average degree of the adjacent matrix
+    Input:
+        adjmatrix - the adjacent matrix
+    Output:
+        degree - the average degree of the adjacent matrix
+    """
+    
+    import numpy as np
+    
+    return np.sum(adjmatrix)/(len(adjmatrix)*len(adjmatrix))
+    
+
     
 
                 

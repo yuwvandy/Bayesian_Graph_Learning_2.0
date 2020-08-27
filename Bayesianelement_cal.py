@@ -283,11 +283,10 @@ def proposal2(adjmatrix, system, candidate_edge, network2internetwork):
             return adjmatrix2, priorratio, flag, i, j
         
 
-def MCMC_MH(experiment_num, prior_adjmatrix, initial_random_num, num, system, fail_seq_data, network2internetwork, sc_system):
+def MCMC_MH(experiment_num, prior_adjmatrix, num, system, fail_seq_data, network2internetwork, sc_system):
     """ Perform the Metropoli Hasting sampling to obtain the MCMC chain
     Input:
         prior_adjmatrix: the initial prior adjmatrix, note: for different initialization, we further randomly move from the initial prior adjmatrix
-        initial_random_num: the maximum number we are allowed to change our initial prior adjmatrix
         num: the number of the MCMC chain
         system: the object of the interdependent system we want to infer
         fail_seq_data: the failure sequence data we use to update our prior
