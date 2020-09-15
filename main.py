@@ -55,12 +55,13 @@ sc_system.edge_failure_matrix()
 
 #Simulate the failure of the whole system several times
 ##The fail_seq_data is used to update the Bayesian posterior
-def faildata_simulation(time, sc_system, seed):
+def faildata_simulation(time, sc_system, seed, initial_fail_num):
     """Simulate the failure evolution data with given time
     Input:
         time - the amount of simulation
         sc_system - the object where we perform the failure simulation
         seed - the parameter control the randomness of the initial failure scenario
+        initial_fail_num - the initial number of failed nodes
     Output:
         fail_seq_data
     """
@@ -73,11 +74,12 @@ def faildata_simulation(time, sc_system, seed):
         sc_system.generate_initial_failure(initial_fail_num, seed)
         sc_system.failure_simulation()
         
-        if(np.sum(sc_system.node_fail_sequence[0]) == 0):
+        if(np.sum(sc_system.node_fail_sequence[0]) <= 0 or len(sc_system.node_fail_sequence) <= 10):
             continue
         
         fail_seq_data.append(sc_system.node_fail_sequence)
         temp += 1
+        print(temp)
     
     return fail_seq_data
 
@@ -121,13 +123,12 @@ def initial_prior(network_data, internetwork_data, edge_prob):
 
 
 ##Generate failure sequence data based on simulation
-data_num = 5
-fail_seq_data = faildata_simulation(data_num, sc_system, seed = 1)
+data_num = 50
+fail_seq_data = faildata_simulation(data_num, sc_system, 1, 5)
 
 ##MCMC: Metropolis hasting algorithm
-experiment_num = 50
-initial_random_num = 50
-num = 5000
+experiment_num = 1
+num = 2000
 
 import time
 
@@ -135,7 +136,6 @@ experiment = []
 time_list = []
 
 for i in range(experiment_num):
-    start_time = time.time()
     ##Generate the initial graph topology by first samplying system and then adding edges based on failure sequence data
     block_system, block_networks, block_internetworks = initial_prior(dt.block_data, dt.block_inter_data, edge_prob)
     
@@ -145,13 +145,23 @@ for i in range(experiment_num):
     #It should be noticed that the initial prior should guarantee the likelihood is not 0 so that MCMC chain can proceed to converge
     prior_adjmatrix = beycal.prior2(fail_seq_data, block_system, network2internetwork)
     
-    #MCMC
-    adj_list = beycal.MCMC_MH(i, prior_adjmatrix, num, block_system, fail_seq_data, network2internetwork, sc_system)
+    fail_seq_data2 = []
+    for j in range(len(fail_seq_data)):
+        a, b, c = beycal.likelihood(fail_seq_data[j], prior_adjmatrix, block_system.fail_prop_matrix)
+        if(a != None):
+            fail_seq_data2.append(fail_seq_data[j])
     
-    time_list.append(time.time() - start_time)
+    #MCMC
+    adj_list = beycal.MCMC_MH(i, prior_adjmatrix, num, block_system, fail_seq_data2, network2internetwork, sc_system)
     
     experiment.append(adj_list)
     print("experiment {} ends".format(i))
+    
+
+np.save("./result/experiment1/scsystem", sc_system.adjmatrix)
+np.save("./result/experiment1/fail_seq_data", fail_seq_data)
+np.save("./result/experiment1/adjlist", experiment[0])
+np.save("./result/experiment1/initial_adjmatrix", block_system.adjmatrix)
 
 
 def feature_cal(experiment, feature):
@@ -176,29 +186,64 @@ def feature_cal(experiment, feature):
     return feature_list
 
 degree_list = feature_cal(experiment, "degree")
+plt.plot(np.arange(0, len(degree_list[0]), 1), degree_list[0])
+
+index = [1, 2, 8]
 
 import matplotlib.pyplot as plt
-for i in range(len(degree_list)):
-    plt.plot(np.arange(0, len(degree_list[i]), 1), degree_list[i], label = "experiment {}".format(i + 1))
+for i in index:
+    plt.plot(np.arange(0, len(degree_list), 1), degree_list, label = "experiment {}".format(i + 1))
 plt.xlabel("Iteration number", fontsize = 15, weight = "bold")
 plt.ylabel("Degree value", fontsize = 15, weight = "bold")
 plt.legend(loc = "best", fontsize = 12, frameon = 0)
 
 
 ##Given the MCMC chain - adj_list, post-procession
-degree_list = []
-for i in range(len(experiment[1])):
-    degree_list.append(np.sum(experiment[1][i])/(sc_system.nodenum*sc_system.nodenum))
-
+degree = []
+for i in range(len(experiment)):
+    degree_list = []
+    for j in range(len(experiment[i])):
+        degree_list.append(np.sum(experiment[i][j])/(sc_system.nodenum*sc_system.nodenum))
+    degree.append(degree_list)
+    
 import matplotlib.pyplot as plt
-plt.plot(np.arange(0, len(degree_list), 1), degree_list)
+for i in range(len(degree)):
+    plt.plot(np.arange(0, len(degree[i]), 1), degree[i])
 plt.xlabel("Iteration number", fontsize = 15, weight = "bold")
 plt.ylabel("Degree value", fontsize = 15, weight = "bold")
+plt.savefig(fname = "MCMCchain.pdf")
 
-adj_heatmap = sf.cal_adjmatrix_heatmap(experiment[0], sc_system.adjmatrix, warm_up = 2000)
+
+adj_heatmap = sf.cal_adjmatrix_heatmap(experiment[0], sc_system.adjmatrix, warm_up = 1200)
 import seaborn as sns
-sns.heatmap(sc_system.adjmatrix, cmap = "cividis")
+plt.figure(figsize = (12,10))
+sns.heatmap(sc_system.adjmatrix)
+plt.figure(figsize = (12,10))
 sns.heatmap(adj_heatmap)
+sns.heatmap(block_system0.adjmatrix)
+
+precisionlist = []
+recalllist = []
+F1list = []
+accuracylist = []
+for p in np.arange(0, 1, 0.001):
+    predict_adjmatrix = np.zeros((sc_system.nodenum, sc_system.nodenum), dtype = int)
+    for i in range(sc_system.nodenum):
+        for j in range(sc_system.nodenum):
+            if(adj_heatmap[i, j] > p):
+                predict_adjmatrix[i, j] = 1
+    
+    accuracy, precision, recall, F1 = sf.performance(predict_adjmatrix, sc_system.adjmatrix)
+    
+    precisionlist.append(precision)
+    recalllist.append(recall)
+    F1list.append(F1)
+    accuracylist.append(accuracy)
+
+plt.plot(recalllist, precisionlist)
+plt.xlabel("Recall", fontsize = 15, weight = "bold")
+plt.ylabel("Precision", fontsize = 15, weight = "bold")
+    
 
 #threshold to generate the eventual adjacent matrix given adj_heatmap
 accuracylist = []
@@ -213,7 +258,7 @@ for threshold in np.arange(0, 1.01, 0.01):
                 infer_adjmatrix[i, j] = 1
     
     accuracy, precision, recall, F1 = performance(infer_adjmatrix, sc_system.adjmatrix)
-    
+
 
 
 

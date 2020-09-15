@@ -10,6 +10,19 @@ def readedge(edgepath):
 
     return np.array(E.iloc[:, 1:3])
 
+def readnode(nodepath):
+    """ Read the node file and output the 2D array
+    Input:
+        nodepath
+    Output: the 2D array containing node geolocation information
+    """
+    import numpy as np
+    import pandas as pd
+    
+    N = pd.read_excel(nodepath)
+    
+    return np.array(N.iloc[:, ])
+
 def edgelist2matrix(edgelist, nodenum):
     """Read the edgelist file and construct the corresponding adjmatrix
     Input: edgelist - 2D array
@@ -50,8 +63,8 @@ def cal_score(adjlist, target_adj, warm_up_num):
 def performance(adjmatrix, target_adjmatrix):
     """Calculate the precision, accuracy, recall and F1-score of the adjmatrix given the target_adjmatrix
     Input:
-        adjmatrix
-        target_adjmatrix
+        adjmatrix - the predicted adjacent matrix
+        target_adjmatrix - the real adjacent matrix
     Output:
         precision, accuracy, recall and F1-score: all are basically scalars
         Notice: the positive or negative is whether there is an edge or not
@@ -64,12 +77,12 @@ def performance(adjmatrix, target_adjmatrix):
                 if(adjmatrix[i, j] == target_adjmatrix[i, j]):
                     TN += 1
                 else:
-                    FP += 1
+                    FN += 1
             else:
                 if(adjmatrix[i, j] == target_adjmatrix[i, j]):
                     TP += 1
                 else:
-                    FN += 1
+                    FP += 1
     
     precision = TP/(TP + FP)
     recall = TP/(TP + FN)
@@ -136,6 +149,16 @@ def degree_cal(adjmatrix):
     import numpy as np
     
     return np.sum(adjmatrix)/(len(adjmatrix)*len(adjmatrix))
+
+#
+def cluster_coeff(adjmatrix):
+    """ Calculate the cluster_coefficient of the graph
+    Input:
+        adjmatrix - the adjacent matrix
+    Output:
+        cluster_coefficient: the cluster coefficient of the graph
+    """
+    
     
 
     

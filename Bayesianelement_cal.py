@@ -106,12 +106,16 @@ def prior2(fail_seq_data, system, network2internetwork):
 
 def likelihood(sigma, adjmatrix, fail_prop_matrix):
     """Calculate the likelihood of the certain failure sequence given the adjmatrix and the conditioanl failure probability
+    When the data is too much, we use log to simplify the computation and avoid numerical error
     Input:
         sigma: the failure sequence data
         adjmatrix: the adjacent matrix of the network
         fail_prop_matrix: the conditional failure probability
     """
+    import numpy as np
+    
     like2 = 1
+    log_like2 = 0
     
     for i in range(len(sigma) - 1):
         for j in range(len(adjmatrix)):
@@ -124,10 +128,14 @@ def likelihood(sigma, adjmatrix, fail_prop_matrix):
             
             temp = ((1 - fail_prob)**sigma[i + 1][j]*fail_prob**(1 - sigma[i + 1][j]))**(1 - sigma[i][j])
             
-            like2 = like2*temp
+            if(temp == 0):
+                return None, None, False
             
+            like2 = like2*temp
+            log_like2 += np.log(temp)
     
-    return like2
+            
+    return like2, log_like2, True
 
 def proposal1(adjmatrix, edge_prob_matrix):
     """Proposal the new edge randomly and calculate the ratio of the prior probability
@@ -307,26 +315,41 @@ def MCMC_MH(experiment_num, prior_adjmatrix, num, system, fail_seq_data, network
     adj_list.append(adjmatrix)
     plike2_1 = np.empty(len(fail_seq_data), dtype = float)
     plike2_2 = np.empty(len(fail_seq_data), dtype = float)
-    for i in range(len(fail_seq_data)):
-        plike2_1[i] = likelihood(fail_seq_data[i], adjmatrix, system.fail_prop_matrix)
     
+    log_plike2_1 = np.empty(len(fail_seq_data), dtype = float)
+    log_plike2_2 = np.empty(len(fail_seq_data), dtype = float)
+    for i in range(len(fail_seq_data)):
+        plike2_1[i], log_plike2_1[i], accept_flag = likelihood(fail_seq_data[i], adjmatrix, system.fail_prop_matrix)
+
     while(len(adj_list) <= num):
         # adjmatrix2, priorratio = beycal.proposal1(adjmatrix, block_system.edge_prob_matrix)
         adjmatrix2, priorratio, flag, i, j = proposal2(adjmatrix, system, dt.candidate_edge, network2internetwork)
         # print(accept_ratio, i, j)
         if(flag == 0):
             continue
+        
+        
 
         accept_ratio = priorratio
+        log_accept_ratio = np.log(priorratio)
+        
         for i in range(len(fail_seq_data)):
-            plike2_2[i] = likelihood(fail_seq_data[i], adjmatrix2, system.fail_prop_matrix)
-            accept_ratio = accept_ratio*plike2_2[i]/plike2_1[i]
+            plike2_2[i], log_plike2_2[i], accept_flag = likelihood(fail_seq_data[i], adjmatrix2, system.fail_prop_matrix)
+            if(accept_flag == False):
+                break
+#            accept_ratio = accept_ratio*plike2_2[i]/plike2_1[i]
+            log_accept_ratio += log_plike2_2[i] - log_plike2_1[i]
+#            print(plike2_2[i])
         
-        
-        if(np.random.rand() < accept_ratio):
-            plike2_1 = copy.deepcopy(plike2_2)
-            adjmatrix = adjmatrix2
-            adj_list.append(adjmatrix)
-            print(np.sum(adjmatrix)/(system.nodenum**2), len(adj_list), np.sum(sc_system.adjmatrix)/(sc_system.nodenum**2), experiment_num)
+#        if(np.random.rand() < accept_ratio):
+        if(accept_flag == True):
+            if(np.log(np.random.rand()) < log_accept_ratio):
+                plike2_1 = copy.deepcopy(plike2_2)
+                log_plike2_1 = copy.deepcopy(log_plike2_2)
+                
+                adjmatrix = adjmatrix2
+                adj_list.append(adjmatrix)
+                print(np.sum(adjmatrix)/(system.nodenum**2), len(adj_list), np.sum(sc_system.adjmatrix)/(sc_system.nodenum**2), experiment_num)
+            
         
     return adj_list

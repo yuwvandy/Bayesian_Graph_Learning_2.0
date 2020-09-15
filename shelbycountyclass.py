@@ -32,6 +32,18 @@ class shelbycounty(object):
 
         self.edgelist = sf.readedge(edgepath)
         self.adjmatrix = sf.edgelist2matrix(self.edgelist, self.nodenum)
+        
+    def nodexy(self, nodepath):
+        """ Set up the node coordinates
+        Input:
+            nodepath - the path of the list of node coordinates
+        Output:
+            self.x - 1 numpy array
+            self.y - 1 numpy array
+        """
+        import sharefunction as sf
+        
+        self.nodexy = sf.readnode(nodepath)
 
     def edgeprob(self):
         """Calculate the edge probability within single partite nodes and between different types of nodes
@@ -202,14 +214,26 @@ class shelbycounty(object):
         self.fail_prop_matrix = np.zeros((self.nodenum, self.nodenum), dtype = float)
         
         for i in range(len(self.fail_prop)):
-            for j in range(len(self.fail_prop)):
-                for m in self.type[i]:
-                    for n in self.type[j]:
-                        if(m == n):
-                            self.fail_prop_matrix[m, n] = 1
-                        else:
-                            self.fail_prop_matrix[m, n] = self.fail_prop[i, j]
-    
+            for j in range(i, len(self.fail_prop)):
+                if(i == j):
+                    if(i == 0):
+                        for m in self.type[i]:
+                            self.fail_prop_matrix[m, m] = 1
+                    else:
+                        for m in self.type[i]:
+                            for n in self.type[j]:
+                                if(m == n):
+                                    self.fail_prop_matrix[m, n] = 1
+                                else:
+                                    self.fail_prop_matrix[m, n] = self.fail_prop[i, j]
+                else:
+                    for m in self.type[i]:
+                            for n in self.type[j]:
+                                if(m == n):
+                                    self.fail_prop_matrix[m, n] = 1
+                                else:
+                                    self.fail_prop_matrix[m, n] = self.fail_prop[i, j]
+        
     def failure_probability(self):
         """Calculate the node failure probability based on failure_matrix
         Input:

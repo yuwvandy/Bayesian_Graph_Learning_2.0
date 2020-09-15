@@ -37,6 +37,7 @@ class block_intersystem(object):
         
     def nodesearchtable(self):
         """Create a node search table where we can assess the class the node belongs to , the node subtype and the node while type
+        0, 1, 2 columns correspond to network, subtype, nodenumber in the network
         """
         import numpy as np
         
@@ -84,7 +85,7 @@ class block_intersystem(object):
         import numpy as np
         import copy
         
-        self.fail_prop_matrix = 0.08*np.ones((self.nodenum, self.nodenum), dtype = float)
+        self.fail_prop_matrix = np.zeros((self.nodenum, self.nodenum), dtype = float)
         
         for i in range(len(self.networks)):
             self.fail_prop_matrix[self.nodeseries[i][0]:(self.nodeseries[i][-1] + 1), self.nodeseries[i][0]:(self.nodeseries[i][-1] + 1)] = copy.deepcopy(self.networks[i].fail_prop_matrix)

@@ -14,8 +14,8 @@ sc_water_data = {"name": "sc_water",
             "color": "blue",
             "edge_path": "./data/wateredges.xlsx",
             "fail_prop_matrix": np.array([[0.3, 0.3, 0.3],
-                                          [0.3, 0.3, 0.3],
-                                          [0.3, 0.3, 0.3]])
+                                          [0, 0.3, 0.3],
+                                          [0, 0, 0.3]])
             }
 
 sc_power_data = {"name": "sc_power",
@@ -29,8 +29,8 @@ sc_power_data = {"name": "sc_power",
             "color": "red",
             "edge_path": "./data/poweredges.xlsx",
             "fail_prop_matrix": np.array([[0.3, 0.3, 0.3],
-                                          [0.3, 0.3, 0.3],
-                                          [0.3, 0.3, 0.3]])
+                                          [0, 0.3, 0.3],
+                                          [0, 0, 0.3]])
             }
 
 sc_gas_data = {"name": "sc_gas",
@@ -44,8 +44,8 @@ sc_gas_data = {"name": "sc_gas",
             "color": "green",
             "edge_path": "./data/gasedges.xlsx",
             "fail_prop_matrix": np.array([[0.3, 0.3, 0.3],
-                                          [0.3, 0.3, 0.3],
-                                          [0.3, 0.3, 0.3]])
+                                          [0, 0.3, 0.3],
+                                          [0, 0, 0.3]])
             }
 
 sc_data = [sc_water_data, sc_power_data, sc_gas_data]
@@ -60,7 +60,7 @@ inter_wd2ps = {"name": "wdemand2psupply",
                "supply_start_num": 0,
                "demand_start_num": sc_water_data["nodenum"],
                "edge_prob": 0.1,
-               "fail_prop": 0.08
+               "fail_prop": 0.3
                }
 
 ##Gas demand -> power supply
@@ -72,7 +72,7 @@ inter_gd2ps = {"name": "gdemand2psupply",
                "supply_start_num": sc_water_data["nodenum"] + sc_power_data["nodenum"],
                "demand_start_num": sc_water_data["nodenum"],
                "edge_prob": 0.1,
-               "fail_prop": 0.08
+               "fail_prop": 0.3
                }
 
 ##Power demand -> all water nodes
@@ -84,7 +84,7 @@ inter_pd2w = {"name": "pdemand2water",
                "supply_start_num": sc_water_data["nodenum"],
                "demand_start_num": 0,
                "edge_prob": 0.1,
-               "fail_prop": 0.08
+               "fail_prop": 0.3
                }
 
 ##Power demand -> all gas nodes
@@ -96,7 +96,7 @@ inter_pd2g = {"name": "pdemand2gas",
                "supply_start_num": sc_water_data["nodenum"],
                "demand_start_num": sc_water_data["nodenum"] + sc_power_data["nodenum"],
                "edge_prob": 0.1,
-               "fail_prop": 0.08
+               "fail_prop": 0.3
                }
 
 sc_inter_data = [inter_wd2ps, inter_gd2ps, inter_pd2w, inter_pd2w]
@@ -116,9 +116,9 @@ water_data = {"name": "water",
             "trannum": 6,
             "demandnum": 34,
             "color": "blue",
-            "fail_prop_matrix": np.array([[0.3, 0.3, 0.3],
-                                          [0.3, 0.3, 0.3],
-                                          [0.3, 0.3, 0.3]]),
+            "fail_prop_matrix": np.array([[0.4, 0.4, 0.4],
+                                          [0, 0.4, 0.4],
+                                          [0, 0, 0.4]]),
             "startnum": 0
             }
 
@@ -131,10 +131,10 @@ power_data = {"name": "power",
             "trannum": 14,
             "demandnum": 37,
             "color": "red",
-            "fail_prop_matrix": np.array([[0.3, 0.3, 0.3],
-                                          [0.3, 0.3, 0.3],
-                                          [0.3, 0.3, 0.3]]),
-            "startnum": 49
+            "fail_prop_matrix": np.array([[0.4, 0.4, 0.4],
+                                          [0, 0.4, 0.4],
+                                          [0, 0, 0.4]]),
+            "startnum":49
             }
 
 gas_data = {"name": "gas",
@@ -146,9 +146,9 @@ gas_data = {"name": "gas",
             "trannum": 7,
             "demandnum": 6,
             "color": "green",
-            "fail_prop_matrix": np.array([[0.3, 0.3, 0.3],
-                                          [0.3, 0.3, 0.3],
-                                          [0.3, 0.3, 0.3]]),
+            "fail_prop_matrix": np.array([[0.4, 0.4, 0.4],
+                                          [0, 0.4, 0.4],
+                                          [0, 0, 0.4]]),
             "startnum": 109
             }
 
@@ -164,7 +164,7 @@ interblock_wd2ps = {"name": "block_wdemand2psupply",
                "supply_start_num": 0,
                "demand_start_num": water_data["nodenum"],
                "edge_prob": 0.1,
-               "fail_prop": 0.08
+               "fail_prop": 0.4
                }
 
 ##Gas demand -> power supply
@@ -176,7 +176,7 @@ interblock_gd2ps = {"name": "block_gdemand2psupply",
                "supply_start_num": water_data["nodenum"] + power_data["nodenum"],
                "demand_start_num": water_data["nodenum"],
                "edge_prob": 0.1,
-               "fail_prop": 0.08
+               "fail_prop": 0.4
                }
 
 ##Power demand -> all water nodes
@@ -188,7 +188,7 @@ interblock_pd2w = {"name": "block_pdemand2water",
                "supply_start_num": water_data["nodenum"],
                "demand_start_num": 0,
                "edge_prob": 0.1,
-               "fail_prop": 0.08
+               "fail_prop": 0.4
                }
 
 ##Power demand -> all gas nodes
@@ -200,7 +200,7 @@ interblock_pd2g = {"name": "block_pdemand2gas",
                "supply_start_num": water_data["nodenum"],
                "demand_start_num": water_data["nodenum"] + power_data["nodenum"],
                "edge_prob": 0.1,
-               "fail_prop": 0.08
+               "fail_prop": 0.4
                }
 
 
